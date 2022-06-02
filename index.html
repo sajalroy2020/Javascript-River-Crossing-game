@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>river crossing</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        .pt-300{
+            padding-top:300px;
+        }
+        .flex{
+            display: flex;
+        }
+        .h-600{
+            height: 600px;
+        }
+        .h-300{
+            height: 300px;
+        }
+        .w-100{
+            width: 100%;
+        }
+        .bg-green{
+            background:url(assets/ground.png);
+            background-size: 100% ;
+            background-repeat: no-repeat;
+            background-position: top -25px right;
+        }
+        .bg-reversed{
+            background:url(assets/ground-r.png);
+            background-size: 100%;
+            background-repeat: no-repeat;
+            background-position: top -25px left;
+        }
+        .bg-blue{
+            background-color: blue;
+        }
+        .w-25{
+            width: 25%;
+        }
+        
+        .w-50{
+            width: 50%;
+        }
+        .water{
+            background:url(assets/water.jpg);
+            background-color: #9bffc2;
+            background-size: 100% 45%;
+            background-position: bottom center;
+            background-repeat: no-repeat;
+        }
+        .boat{
+            width:200px;
+            height: 70px;
+            background:url(assets/boat.png);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            justify-content:center; 
+            transition: 4000ms;
+            
+        }
+        .relative{
+            position:relative;
+        }
+        .absolute{
+            position:absolute;
+        }
+        .slot{
+            width: 42px;
+            height: 77px;
+            float: left;
+            margin-left:5px;
+            margin-top:-76px;
+        }
+        .monk,.devil{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .monk{
+            background:url(assets/monk.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .devil{
+            background:url(assets/devil.png);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+        .none{
+            display: none;
+        }
+    </style>
+</head>
+<body style="background-color:#000000;">
+    <div class="w-100 h-600 flex pt-300 water"> 
+        <div class="w-25 bg-reversed h-300 left-side">
+            <div class="relative slot bank monk-slot none"></div>
+            <div class="relative slot bank monk-slot none"></div>
+            <div class="relative slot bank monk-slot none"></div>
+            <div class="relative slot bank devil-slot none"></div>
+            <div class="relative slot bank devil-slot none"></div>
+            <div class="relative slot bank devil-slot none"></div>
+        </div>
+        <div class="w-50 h-300 relative">
+            <div class="boat absolute flex" style="right:0; margin-right: 0;" data-side="right">
+                <div class="relative slot">
+
+                </div>
+                <div class="relative slot">
+
+                </div>
+            </div>
+            <h1 class="absolute lostText" style="top:-200px; left: 50px; display:none; color: red;">Game Lost</h1>
+            <h1 class="absolute solvedText" style="top:-200px; left: 50px; display:none; color: red;">Game Solved</h1>
+        </div>
+        <div class="w-25 bg-green h-300 right-side">
+                <div class="relative slot bank monk-slot">
+                    <div class="monk passanger" data-side="right" data-type="monk"></div>
+                </div>
+                <div class="relative slot bank monk-slot">
+                    <div class="monk passanger" data-side="right" data-type="monk"></div>
+                </div>
+                <div class="relative slot bank monk-slot">
+                    <div class="monk passanger" data-side="right" data-type="monk"></div>
+                </div>
+                <div class="relative slot bank devil-slot">
+                    <div class="devil passanger" data-side="right" data-type="devil"></div>
+                </div>
+                <div class="relative slot bank devil-slot">
+                    <div class="devil passanger" data-side="right" data-type="devil"></div>
+                </div>
+                <div class="relative slot bank devil-slot">
+                    <div class="devil passanger" data-side="right" data-type="devil"></div>
+                </div>
+        </div>
+    </div>
+    <a id="go" href="javascript:;" class="absolute" style="text-decoration:none; font-weight:bold; color:#fff; width:50px;height:50px; border-radius:50%; background:red;right:30px;top:30px; text-align: center;line-height: 50px;">GO</a>
+    <script>
+        class RiverCrossing {
+            constructor(){
+                this.declareVariable();
+                this.initialization();
+            }
+
+            declareVariable(){
+                this.boatPassanger = 0;
+                this.boat = document.querySelector('.boat');
+                this.leftGround = document.querySelector('.bg-reversed');
+                this.rightGround = document.querySelector('.bg-green');
+                this.allPassangers = document.querySelectorAll('.passanger');
+                this.goButton = document.getElementById('go');
+            }
+
+            initialization(){
+                for(let i=0; i < this.allPassangers.length; i++){
+                    this.passangerClick(this.allPassangers[i])
+                } 
+                this.goClick();
+            }
+
+            goClick(){
+                let $this = this;
+                this.goButton.addEventListener('click',function(){
+                    if($this.boatPassanger>0){
+                        let target = '100%';
+                        let marginTarget = '-200px';
+                        let targetSide = 'left'
+                        if($this.boat.dataset['side']=='left'){
+                            target = '0';
+                            marginTarget = '0';
+                            targetSide = 'right'
+                        }
+                        $this.boat.style.cssText = 'right:' + target + '; margin-right:' + marginTarget +';'
+                        $this.boat.dataset['side'] = targetSide;
+                        $this.gameCondition();
+                    }
+                })
+            }
+            
+            passangerClick(item) {
+                let $this = this;
+                item.addEventListener('click',function(){
+                    let itemParent = item.parentElement
+                    if(item.dataset['side'] == 'boat'){
+                        let validSlot = document.querySelector('.' + $this.boat.dataset['side']+'-side').querySelectorAll('.'+ item.dataset['type'] + '-slot')
+                        for(let x=0; x < validSlot.length; x++){
+                            if(validSlot[x].classList.contains('none')){
+                                item.dataset['side'] = $this.boat.dataset['side'];
+                                validSlot[x].classList.remove('none')
+                                validSlot[x].append(item)
+                                $this.boatPassanger--;
+                                let a = $this.boat.children[1].children[0];
+                                if(a){
+                                    $this.boat.children[0].append(a);
+                                }
+                                $this.winningCondition()
+                                break;
+                            }
+                        }
+                    }
+                    else if(
+                        item.dataset['side']==$this.boat.dataset['side'] &&
+                        $this.boatPassanger < 2
+                    ){
+                        item.dataset['side'] = 'boat';
+                        let currentPosition = 0;
+                        if($this.boatPassanger===1){
+                            currentPosition = 1;
+                        }
+                        $this.boat.children[currentPosition].append(item)
+                        $this.boatPassanger++;
+                        itemParent.classList.add('none');
+                    }
+                })
+            }
+
+            gameCondition(){
+                let leftMonk = document.querySelector('.left-side').querySelectorAll('.monk').length;
+                let leftDevil = document.querySelector('.left-side').querySelectorAll('.devil').length;
+                let BoatMonk = document.querySelector('.boat').querySelectorAll('.monk').length;
+                let BoatDevil = document.querySelector('.boat').querySelectorAll('.devil').length;
+                let rightMonk = document.querySelector('.right-side').querySelectorAll('.monk').length;
+                let rightDevil = document.querySelector('.right-side').querySelectorAll('.devil').length;
+                
+                
+                if(this.boat.dataset['side']=='left'){
+                    if(
+                        ((leftMonk + BoatMonk) > 0 && (leftMonk + BoatMonk) < (leftDevil + BoatDevil)) ||
+                        (rightMonk > 0 && rightMonk < rightDevil)
+                    ){
+                        // alert('game lost')
+                        let lostText = document.querySelector('.lostText');
+                        lostText.style.display = 'block';
+
+                        // yy(){
+                        //     let $this = this;
+                        //     this.window.location.reload();
+                        // }
+
+                    }
+                }
+                else{
+                    if(
+                        (leftMonk > 0 && (leftMonk) < (leftDevil)) ||
+                        ((rightMonk + BoatMonk) > 0 && (rightMonk + BoatMonk) < (rightDevil + BoatDevil))
+                    ){
+                        // alert('game lost')
+                        lostText.style.display = 'block';
+                    }
+                }
+            }
+            winningCondition(){
+                if(this.boat.dataset['side']=='left'){
+                    let leftMonk = document.querySelector('.left-side').querySelectorAll('.monk').length;
+                    let leftDevil = document.querySelector('.left-side').querySelectorAll('.devil').length;
+                    if(leftMonk + leftDevil == 6){
+                        // alert('Solved')
+                        let lostText = document.querySelector('.solvedText');
+                        lostText.style.display = 'block';
+                    }
+                }
+
+            }
+        }
+
+
+        let a = new RiverCrossing()
+    </script>
+</body>
+</html>
